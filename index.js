@@ -3,12 +3,8 @@ import { dbConnection } from "./database/db.js";
 import bodyParser from "body-parser";
 import { apiRequestLimiter } from "./middleware/apiRateLimiter.js";
 import { CONFIG } from "./config/config.js";
-import {
-  UnauthenticatedError,
-  NotFoundError,
-  BadRequestError,
-  UnauthorizedError,
-} from "./errors/index.js";
+import { generateSnowflakeId } from "./utils/unique-id-generator.js";
+import { generateHashPassword } from "./middleware/hash-password.js";
 
 dbConnection();
 const app = express();
@@ -19,17 +15,9 @@ app.use(bodyParser.json());
 app.use(apiRequestLimiter);
 
 app.get("/", (req, res) => {
-  const unauthenticated = new UnauthenticatedError("unauthenticated error");
-  const notFoundError = new NotFoundError("not found error");
-  const badRequestError = new BadRequestError("badRequestError error");
-  const unauthorizedError = new UnauthorizedError("UnauthorizedError error");
-  const errorObj ={
-    unauthenticated,
-    notFoundError,
-    badRequestError,
-    unauthorizedError
-  };
-  res.send(errorObj);
+  const uuid = generateSnowflakeId();
+  const hashPassword = generateHashPassword();
+  res.send({ uuid, hashPassword });
 });
 
 app.listen(PORT, () => {
